@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سوق بلس | متجرك الرقمي المتكامل</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    
+    /* Animation for Cart Slide in RTL */
+    .cart-drawer {
+      transition: transform 0.3s ease-in-out;
+      transform: translateX(-100%);
+    }
+    .cart-drawer.open {
+      transform: translateX(0);
+    }
+
+    .modal-backdrop {
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    /* Flying Image Animation */
+    .flying-img {
+      position: fixed;
+      z-index: 9999;
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 50%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      pointer-events: none;
+      transition: all 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    /* Cart Pulse Animation */
+    @keyframes cartBump {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    .cart-bump {
+      animation: cartBump 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+  <!-- ================= HEADER / NAVBAR ================= -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-12 h-12 rounded-2xl bg-brand-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
+          <i class="fa-solid font-bold fa-bag-shopping"></i>
+        </div>
+        <div>
+          <span class="text-2xl font-extrabold text-gray-900 tracking-tight block">سوق بلس</span>
+          <span class="text-xs text-brand-600 font-semibold block -mt-1">SouqPlus Store</span>
+        </div>
+      </a>
+
+      <!-- Search Bar (Desktop) -->
+      <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="ابحث عن منتج، ماركة، أو تصنيف..." 
+               class="w-full pr-11 pl-4 py-2.5 bg-gray-100/80 border border-transparent rounded-2xl focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all text-sm outline-none">
+        <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Merchant Settings Button -->
+        <button onclick="openSettingsModal()" title="إعدادات رقم الواتساب" class="p-2.5 sm:px-3 sm:py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center gap-2">
+          <i class="fa-solid fa-gear text-sm text-gray-500"></i>
+          <span class="hidden sm:inline">رقم التاجر</span>
+        </button>
+
+        <!-- Add Product Button (Merchant) -->
+        <button onclick="openAddProductModal()" class="p-2.5 sm:px-3 sm:py-2 text-xs font-bold text-brand-700 bg-brand-100 hover:bg-brand-200 rounded-xl transition flex items-center gap-2">
+          <i class="fa-solid fa-plus text-sm"></i>
+          <span class="hidden sm:inline">إضافة منتج</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button id="cartBtnHeader" onclick="toggleCart(true)" class="relative p-3 bg-brand-500 hover:bg-brand-600 text-white rounded-2xl shadow-lg shadow-brand-500/25 transition flex items-center justify-center">
+          <i class="fa-solid fa-cart-shopping text-lg"></i>
+          <span id="cartBadge" class="absolute -top-1.5 -left-1.5 bg-red-500 text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white scale-0 transition-transform">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Search Bar -->
+    <div class="px-4 pb-3 md:hidden">
+      <div class="relative">
+        <input type="text" id="mobileSearchInput" oninput="syncAndFilter(this.value)" placeholder="ابحث عن منتج..." 
+               class="w-full pr-10 pl-4 py-2 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-brand-500 text-sm outline-none">
+        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO / BANNER ================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    <div class="relative rounded-3xl bg-gradient-to-r from-gray-900 via-gray-800 to-brand-900 text-white p-6 sm:p-10 overflow-hidden shadow-xl">
+      <div class="relative z-10 max-w-xl">
+        <span class="inline-block px-3 py-1 bg-brand-500/20 text-brand-300 border border-brand-500/30 text-xs font-bold rounded-full mb-3">عروض جديدة حصرياً 🎉</span>
+        <h1 class="text-2xl sm:text-4xl font-extrabold leading-tight mb-3">تسوق أحدث المنتجات واطلب مباشر عبر الواتساب!</h1>
+        <p class="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">تصفح مجموعتنا المختارة بعناية، أضف مشترياتك للسلة، وأرسل طلبك بنقرة واحدة لتاجر المتجر.</p>
+        <a href="#productsSection" class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg transition text-sm">
+          تصفح المنتجات الآن
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+      </div>
+      <!-- Background Decorative Circles -->
+      <div class="absolute -left-10 -bottom-10 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute right-1/3 -top-10 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+    </div>
+  </section>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main id="productsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+    
+    <!-- Category Filters -->
+    <div class="flex items-center justify-between gap-4 mb-8 overflow-x-auto pb-2 scrollbar-none">
+      <div class="flex items-center gap-2" id="categoriesContainer">
+        <!-- Rendered Dynamically -->
+      </div>
+      <span id="productCount" class="text-xs font-semibold text-gray-500 whitespace-nowrap bg-gray-200/60 px-3 py-1.5 rounded-lg">
+        0 منتجات
+      </span>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Products render here dynamically -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-16">
+      <div class="w-20 h-20 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">
+        <i class="fa-solid fa-box-open"></i>
+      </div>
+      <h3 class="text-lg font-bold text-gray-700">لم نجد أي منتجات تطابق بحثك!</h3>
+      <p class="text-gray-500 text-sm mt-1">جرب البحث بكلمات أخرى أو اختر تصنيفاً مختلفاً.</p>
+    </div>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-gray-200 py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
+      <p class="font-semibold text-gray-700 mb-2">سوق بلس © 2026 - جميع الحقوق محفوظة</p>
+      <p class="text-xs text-gray-400">متجر إلكتروني تفاعلي متوافق مع طلبات الواتساب المباشرة.</p>
+    </div>
+  </footer>
+
+  <!-- ================= CART DRAWER (SLIDE OVER - LEFT SIDE) ================= -->
+  <div id="cartBackdrop" onclick="toggleCart(false)" class="fixed inset-0 bg-black/50 z-40 hidden modal-backdrop"></div>
+  
+  <aside id="cartDrawer" class="fixed top-0 left-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl flex flex-col cart-drawer">
+    <!-- Cart Header -->
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleCart(false)" class="w-9 h-9 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <div>
+          <h2 class="font-extrabold text-gray-900 text-lg">سلة المشتريات</h2>
+          <p class="text-xs text-gray-500" id="cartHeaderCount">0 عناصر مضافة</p>
+        </div>
+      </div>
+      <button onclick="clearCart()" class="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1">
+        <i class="fa-solid fa-trash"></i> إفراغ السلة
+      </button>
+    </div>
+
+    <!-- Cart Items List -->
+    <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-5 space-y-4">
+      <!-- Dynamically generated items -->
+    </div>
+
+    <!-- Cart Footer & Checkout Form -->
+    <div class="p-5 border-t border-gray-100 bg-gray-50 space-y-4">
+      <!-- Subtotal -->
+      <div class="flex items-center justify-between text-gray-700 font-bold">
+        <span>المجموع الكلي:</span>
+        <span id="cartSubtotal" class="text-xl text-brand-600 font-extrabold">$0.00</span>
+      </div>
+
+      <!-- Customer Form -->
+      <div class="space-y-2 pt-2 border-t border-gray-200">
+        <label class="block text-xs font-bold text-gray-700">بيانات التوصيل لإكمال الطلب:</label>
+        <input type="text" id="custName" placeholder="الاسم الكامل" class="w-full px-3 py-2 text-xs bg-white border border-gray-300 rounded-xl focus:border-brand-500 outline-none">
+        <input type="text" id="custAddress" placeholder="المدينة / العنوان بالتفصيل" class="w-full px-3 py-2 text-xs bg-white border border-gray-300 rounded-xl focus:border-brand-500 outline-none">
+      </div>
+
+      <!-- WhatsApp Checkout Button -->
+      <button onclick="checkoutWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 text-sm">
+        <i class="fa-brands fa-whatsapp text-xl"></i>
+        إرسال الطلب عبر الواتساب
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MODAL: ADD PRODUCT ================= -->
+  <div id="addProductModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeAddProductModal()" class="absolute left-5 top-5 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-lg font-extrabold text-gray-900 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-circle-plus text-brand-500"></i>
+        إضافة منتج جديد للمتجر
+      </h3>
+
+      <form id="newProductForm" onsubmit="handleAddNewProduct(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">اسم المنتج</label>
+          <input type="text" id="npTitle" required class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-brand-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">السعر ($)</label>
+            <input type="number" step="0.01" id="npPrice" required class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">التصنيف</label>
+            <input type="text" id="npCategory" placeholder="مثال: إلكترونيات" required class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-brand-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">رابط صورة المنتج (URL)</label>
+          <input type="url" id="npImage" placeholder="https://..." required class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-brand-500">
+        </div>
+
+        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition mt-4">
+          حفظ ونشر المنتج
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: SETTINGS (WHATSAPP NUMBER) ================= -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
+      <button onclick="closeSettingsModal()" class="absolute left-5 top-5 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-lg font-extrabold text-gray-900 mb-2">إعدادات رقم التاجر</h3>
+      <p class="text-xs text-gray-500 mb-4">أدخل رقم الواتساب بالرمز الدولي لتلقي الطلبات عليه مباشرة.</p>
+
+      <div class="space-y-3">
+        <input type="text" id="merchantPhoneInput" placeholder="مثال: 256700000000" class="w-full px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-brand-500 text-left" dir="ltr">
+        <button onclick="saveMerchantPhone()" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-2.5 rounded-xl transition text-sm">
+          حفظ الرقم
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // Initial Products Data
+    const defaultProducts = [
+      {
+        id: 1,
+        title: "سماعات لاسلكية برو نويز كنسلينج",
+        price: 89.99,
+        originalPrice: 120.00,
+        category: "إلكترونيات",
+        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80",
+        rating: 4.8
+      },
+      {
+        id: 2,
+        title: "حقيبة ظهر أنيقة للكمبيوتر المحمول",
+        price: 45.00,
+        originalPrice: 65.00,
+        category: "حقائب",
+        image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80",
+        rating: 4.6
+      },
+      {
+        id: 3,
+        title: "ساعة ذكية رياضية مقاومة للماء",
+        price: 59.99,
+        originalPrice: 85.00,
+        category: "ساعات",
+        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80",
+        rating: 4.9
+      },
+      {
+        id: 4,
+        title: "نظارة شمسية كلاسيكية حماية UV400",
+        price: 22.00,
+        originalPrice: 35.00,
+        category: "إكسسوارات",
+        image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&q=80",
+        rating: 4.4
+      },
+      {
+        id: 5,
+        title: "شاحن لاسلكي سريع 3 في 1",
+        price: 29.50,
+        originalPrice: 40.00,
+        category: "إلكترونيات",
+        image: "https://images.unsplash.com/photo-1622445268465-84024680922c?w=500&q=80",
+        rating: 4.7
+      },
+      {
+        id: 6,
+        title: "كوب حراري ليفينج ستيل حافظ للحرارة",
+        price: 18.00,
+        originalPrice: 25.00,
+        category: "إكسسوارات",
+        image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80",
+        rating: 4.5
+      }
+    ];
+
+    // State Variables
+    let products = JSON.parse(localStorage.getItem('souq_products')) || defaultProducts;
+    let cart = JSON.parse(localStorage.getItem('souq_cart')) || [];
+    let merchantPhone = localStorage.getItem('souq_phone') || '256700000000';
+    let currentCategory = 'الكل';
+
+    // DOM Elements
+    const productsGrid = document.getElementById('productsGrid');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const emptyState = document.getElementById('emptyState');
+    const cartBadge = document.getElementById('cartBadge');
+    const cartBtnHeader = document.getElementById('cartBtnHeader');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartBackdrop = document.getElementById('cartBackdrop');
+    const cartItemsContainer = document.getElementById('cartItemsContainer');
+    const cartSubtotal = document.getElementById('cartSubtotal');
+
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategories();
+      renderProducts();
+      updateCartUI();
+    });
+
+    // Render Categories Filters
+    function renderCategories() {
+      const categories = ['الكل', ...new Set(products.map(p => p.category))];
+      categoriesContainer.innerHTML = categories.map(cat => `
+        <button onclick="setCategory('${cat}')" 
+                class="px-4 py-2 rounded-2xl text-xs font-bold transition whitespace-nowrap ${currentCategory === cat ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    // Filter Category
+    function setCategory(cat) {
+      currentCategory = cat;
+      renderCategories();
+      filterProducts();
+    }
+
+    // Synchronize Desktop and Mobile Search
+    function syncAndFilter(val) {
+      document.getElementById('searchInput').value = val;
+      filterProducts();
+    }
+
+    // Filter & Search Products
+    function filterProducts() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      const filtered = products.filter(p => {
+        const matchesCategory = currentCategory === 'الكل' || p.category === currentCategory;
+        const matchesSearch = p.title.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      });
+
+      renderProducts(filtered);
+    }
+
+    // Render Products Grid
+    function renderProducts(itemsToRender = products) {
+      document.getElementById('productCount').textContent = `عرض ${itemsToRender.length} من إجمالي ${products.length} منتج`;
+
+      if (itemsToRender.length === 0) {
+        productsGrid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      productsGrid.innerHTML = itemsToRender.map(product => `
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col justify-between">
+          <div>
+            <!-- Image & Badge -->
+            <div class="relative h-52 bg-gray-100 overflow-hidden">
+              <img id="img-prod-${product.id}" src="${product.image}" alt="${product.title}" class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500">
+              <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-gray-700 shadow-sm">
+                ${product.category}
+              </span>
+              ${product.originalPrice ? `
+                <span class="absolute top-3 left-3 bg-red-500 text-white px-2 py-0.5 rounded-lg text-[10px] font-extrabold shadow-sm">
+                  خصم
+                </span>
+              ` : ''}
+            </div>
+
+            <!-- Content -->
+            <div class="p-5">
+              <div class="flex items-center gap-1 text-amber-400 text-xs mb-1">
+                <i class="fa-solid fa-star"></i>
+                <span class="font-bold text-gray-600 mr-1">${product.rating || '4.5'}</span>
+              </div>
+              <h3 class="font-bold text-gray-900 text-sm leading-snug line-clamp-2 mb-3 group-hover:text-brand-600 transition">
+                ${product.title}
+              </h3>
+            </div>
+          </div>
+
+          <!-- Price and Action -->
+          <div class="px-5 pb-5 flex items-center justify-between border-t border-gray-50 pt-3">
+            <div>
+              <span class="text-xs text-gray-400 block">السعر</span>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-lg font-extrabold text-gray-900">$${product.price.toFixed(2)}</span>
+                ${product.originalPrice ? `<span class="text-xs text-gray-400 line-through">$${product.originalPrice.toFixed(2)}</span>` : ''}
+              </div>
+            </div>
+
+            <button onclick="addToCart(${product.id}, event)" class="w-10 h-10 bg-gray-100 hover:bg-brand-500 hover:text-white text-gray-700 rounded-2xl flex items-center justify-center transition shadow-sm active:scale-95">
+              <i class="fa-solid fa-cart-plus text-base"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Flying Image Animation Function
+    function animateFlyToCart(productId, event) {
+      const prodImg = document.getElementById(`img-prod-${productId}`);
+      if (!prodImg) return;
+
+      const imgRect = prodImg.getBoundingClientRect();
+      const cartRect = cartBtnHeader.getBoundingClientRect();
+
+      // Create duplicate flying image
+      const flyingImg = document.createElement('img');
+      flyingImg.src = prodImg.src;
+      flyingImg.className = 'flying-img';
+      flyingImg.style.top = `${imgRect.top}px`;
+      flyingImg.style.left = `${imgRect.left}px`;
+      flyingImg.style.width = `${imgRect.width}px`;
+      flyingImg.style.height = `${imgRect.height}px`;
+
+      document.body.appendChild(flyingImg);
+
+      // Trigger fly animation on next frame
+      requestAnimationFrame(() => {
+        flyingImg.style.top = `${cartRect.top + 5}px`;
+        flyingImg.style.left = `${cartRect.left + 5}px`;
+        flyingImg.style.width = '25px';
+        flyingImg.style.height = '25px';
+        flyingImg.style.opacity = '0.4';
+      });
+
+      // Cleanup & trigger cart bump
+      setTimeout(() => {
+        flyingImg.remove();
+        cartBtnHeader.classList.add('cart-bump');
+        setTimeout(() => cartBtnHeader.classList.remove('cart-bump'), 400);
+      }, 800);
+    }
+
+    // Add To Cart Function (Without Auto Open)
+    function addToCart(productId, event) {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      // Trigger animation
+      if (event) {
+        animateFlyToCart(productId, event);
+      }
+
+      const existingItem = cart.find(item => item.id === productId);
+
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+
+      saveCart();
+      updateCartUI();
+    }
+
+    // Update Quantity in Cart
+    function updateQuantity(productId, delta) {
+      const item = cart.find(i => i.id === productId);
+      if (!item) return;
+
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(i => i.id !== productId);
+      }
+
+      saveCart();
+      updateCartUI();
+    }
+
+    // Clear Cart
+    function clearCart() {
+      if (cart.length === 0) return;
+      if (confirm('هل أنت تأكد من إفراغ سلة المشتريات؟')) {
+        cart = [];
+        saveCart();
+        updateCartUI();
+      }
+    }
+
+    // Save Cart LocalStorage
+    function saveCart() {
+      localStorage.setItem('souq_cart', JSON.stringify(cart));
+    }
+
+    // Update Cart UI Drawer
+    function updateCartUI() {
+      const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+      // Update Badges & Counters
+      cartBadge.textContent = totalCount;
+      cartBadge.style.transform = totalCount > 0 ? 'scale(1)' : 'scale(0)';
+      document.getElementById('cartHeaderCount').textContent = `${totalCount} عناصر مضافة`;
+      cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+
+      // Render Items
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = `
+          <div class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 text-gray-300 rounded-full flex items-center justify-center mx-auto text-2xl mb-3">
+              <i class="fa-solid fa-basket-shopping"></i>
+            </div>
+            <h4 class="font-bold text-gray-700 text-sm">سلتك فارغة حالياً</h4>
+            <p class="text-xs text-gray-400 mt-1">تصفح المنتجات وأضف ما يعجبك لبناء طلبك وإرساله للتاجر</p>
+          </div>
+        `;
+        return;
+      }
+
+      cartItemsContainer.innerHTML = cart.map(item => `
+        <div class="flex items-center gap-3 bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
+          <img src="${item.image}" alt="${item.title}" class="w-16 h-16 object-cover rounded-xl bg-white">
+          
+          <div class="flex-1 min-w-0">
+            <h4 class="text-xs font-bold text-gray-800 truncate">${item.title}</h4>
+            <span class="text-xs font-extrabold text-brand-600">$${(item.price * item.quantity).toFixed(2)}</span>
+            
+            <!-- Quantity Controls -->
+            <div class="flex items-center gap-2 mt-2">
+              <button onclick="updateQuantity(${item.id}, -1)" class="w-6 h-6 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-100">-</button>
+              <span class="text-xs font-bold text-gray-800">${item.quantity}</span>
+              <button onclick="updateQuantity(${item.id}, 1)" class="w-6 h-6 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-100">+</button>
+            </div>
+          </div>
+
+          <button onclick="updateQuantity(${item.id}, -${item.quantity})" class="text-gray-400 hover:text-red-500 p-1">
+            <i class="fa-solid fa-trash-can text-sm"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Toggle Cart Drawer
+    function toggleCart(open) {
+      if (open) {
+        cartBackdrop.classList.remove('hidden');
+        cartDrawer.classList.add('open');
+      } else {
+        cartBackdrop.classList.add('hidden');
+        cartDrawer.classList.remove('open');
+      }
+    }
+
+    // WhatsApp Checkout Redirect
+    function checkoutWhatsApp() {
+      if (cart.length === 0) {
+        alert('سلة المشتريات فارغة! أضف بعض المنتجات أولاً.');
+        return;
+      }
+
+      const name = document.getElementById('custName').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
+
+      if (!name || !address) {
+        alert('يرجى كتابة الاسم الكامل والعنوان لإتمام الطلب.');
+        return;
+      }
+
+      // Build WhatsApp Message
+      let message = `مرحباً، أود إتمام طلب شراء من متجر *سوق بلس*:\n\n`;
+      message += `👤 *بيانات العميل:*\n`;
+      message += `• *الاسم:* ${name}\n`;
+      message += `• *العنوان:* ${address}\n\n`;
+      message += `🛒 *تفاصيل السلة:*\n`;
+
+      cart.forEach((item, index) => {
+        message += `${index + 1}. ${item.title} (العدد: ${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}\n`;
+      });
+
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      message += `\n💰 *الإجمالي الكلي:* $${subtotal.toFixed(2)}\n\n`;
+      message += `في إنتظار تأكيد الطلب وطريقة الدفع المناسبة. شكراً لك!`;
+
+      // Encoded URL
+      const encodedMsg = encodeURIComponent(message);
+      const url = `https://wa.me/${merchantPhone}?text=${encodedMsg}`;
+
+      window.open(url, '_blank');
+    }
+
+    // Modal Add Product Functions
+    function openAddProductModal() {
+      document.getElementById('addProductModal').classList.remove('hidden');
+    }
+    function closeAddProductModal() {
+      document.getElementById('addProductModal').classList.add('hidden');
+    }
+
+    function handleAddNewProduct(e) {
+      e.preventDefault();
+      const title = document.getElementById('npTitle').value;
+      const price = parseFloat(document.getElementById('npPrice').value);
+      const category = document.getElementById('npCategory').value;
+      const image = document.getElementById('npImage').value;
+
+      const newProd = {
+        id: Date.now(),
+        title,
+        price,
+        category,
+        image,
+        rating: 5.0
+      };
+
+      products.unshift(newProd);
+      localStorage.setItem('souq_products', JSON.stringify(products));
+      
+      renderCategories();
+      renderProducts();
+      closeAddProductModal();
+      document.getElementById('newProductForm').reset();
+    }
+
+    // Modal Settings Functions
+    function openSettingsModal() {
+      document.getElementById('merchantPhoneInput').value = merchantPhone;
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function saveMerchantPhone() {
+      const val = document.getElementById('merchantPhoneInput').value.trim();
+      if (val) {
+        merchantPhone = val;
+        localStorage.setItem('souq_phone', val);
+        alert('تم حفظ رقم الواتساب بنجاح!');
+        closeSettingsModal();
+      }
+    }
+  </script>
+</body>
+</html>
