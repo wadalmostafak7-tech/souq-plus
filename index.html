@@ -119,15 +119,20 @@
   <!-- السلة الجانبية (Drawer) -->
   <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-50 hidden"></div>
   <aside id="cart-drawer" class="cart-drawer fixed top-0 left-0 w-full sm:w-96 h-full bg-white z-50 shadow-2xl flex flex-col transform -translate-x-full">
-    <div class="p-4 border-b flex items-center justify-between bg-emerald-600 text-white">
+   <div class="p-4 border-b flex items-center justify-between bg-emerald-600 text-white">
       <h2 class="text-lg font-bold flex items-center gap-2">
         <span>سلة المشتريات</span>
       </h2>
-      <button id="close-cart" class="p-1 hover:bg-emerald-700 rounded-full transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      <div class="flex items-center gap-2">
+        <button id="clear-cart-btn" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded transition flex items-center gap-1" title="تفريغ السلة">
+          <span>تفريغ</span>
+        </button>
+        <button id="close-cart" class="p-1 hover:bg-emerald-700 rounded-full transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- قائمة عناصر السلة -->
@@ -350,6 +355,14 @@
     cartOverlay.addEventListener('click', () => {
       cartDrawer.classList.add('-translate-x-full');
       cartOverlay.classList.add('hidden');
+    });
+    const clearCartBtn = document.getElementById('clear-cart-btn');
+    clearCartBtn.addEventListener('click', () => {
+      if (cart.length === 0) return;
+      if (confirm('هل أنت تأكد من رغبتك في تفريغ السلة؟')) {
+        cart = [];
+        updateCart();
+      }
     });
 
     // فلترة التصنيفات
