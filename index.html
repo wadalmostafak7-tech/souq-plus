@@ -299,34 +299,42 @@
     };
 
     // إرسال الطلب عبر الواتساب
-    checkoutForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (cart.length === 0) {
-        alert('السلة فارغة!');
-        return;
-      }
+   checkoutForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  if (cart.length === 0) {
+    alert('السلة فارغة!');
+    return;
+  }
 
-      const name = document.getElementById('customer-name').value;
-      const phone = document.getElementById('customer-phone').value;
-      const address = document.getElementById('customer-address').value;
+  const name = document.getElementById('customer-name').value;
+  const phone = document.getElementById('customer-phone').value;
+  const address = document.getElementById('customer-address').value;
 
-      let message = `*طلب جديد من المتجر* 🛍️\n\n`;
-      message += `*الاسم:* ${name}\n`;
-      message += `*الهاتف:* ${phone}\n`;
-      message += `*العنوان:* ${address}\n\n`;
-      message += `*المنتجات:*\n`;
+  let message = `*طلب جديد من متجر بلس* 🛍️\n\n`;
+  message += `*الاسم:* ${name}\n`;
+  message += `*الهاتف:* ${phone}\n`;
+  message += `*العنوان:* ${address}\n\n`;
+  message += `*المنتجات:*\n`;
 
-      cart.forEach((item, index) => {
-        message += `${index + 1}. ${item.name} (${item.quantity}×) - ${item.price * item.quantity}$\n`;
-      });
+  cart.forEach((item, index) => {
+    message += `${index + 1}. ${item.name} (${item.quantity}×) - ${item.price * item.quantity}$\n`;
+  });
 
-      const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      message += `\n*الإجمالي:* ${total}$`;
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  message += `\n*المبلغ الإجمالي:* ${total}$\n\nفي انتظار تأكيد الطلب وطريقة الدفع المناسبة.\nشكراً لك!`;
 
-      const whatsappNumber = "256766177669";
-      const encodedMessage = encodeURIComponent(message);
-      window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
-    });
+  const whatsappNumber = "256766177669";
+  const encodedMessage = encodeURIComponent(message);
+  
+  // فتح الواتساب
+  window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+
+  // تفريغ السلة وإغلاق النافذة الجانبية بعد إرسال الطلب
+  cart = [];
+  updateCart();
+  cartDrawer.classList.add('-translate-x-full');
+  cartOverlay.classList.add('hidden');
+});
 
     // أحداث فتح/إغلاق السلة
     cartBtn.addEventListener('click', () => {
