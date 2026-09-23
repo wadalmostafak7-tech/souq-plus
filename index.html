@@ -125,7 +125,7 @@
       </h2>
       <div class="flex items-center gap-2">
         <button id="clear-cart-btn" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2.5 py-1 rounded transition flex items-center gap-1" title="تفريغ السلة">
-          <span>تفريغ</span>
+          <span>تفريغ السلة</span>
         </button>
         <button id="close-cart" class="p-1 hover:bg-emerald-700 rounded-full transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,15 +169,15 @@
   <script>
     // قائمة المنتجات
     const products = [
-      { id: 1, name: "سماعات لاسلكية عزل ضوضاء", price: 45, category: "electronics", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" },
-      { id: 2, name: "ساعة ذكية مقاومة للماء", price: 80, category: "watches", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" },
-      { id: 3, name: "حقيبة ظهر للكمبيوتر المحمول", price: 35, category: "bags", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500" },
-      { id: 4, name: "نظارة شمسية كلاسيكية", price: 25, category: "accessories", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500" },
-      { id: 5, name: "شاحن لاسلكي سريع 15 واط", price: 20, category: "electronics", image: "https://images.unsplash.com/photo-1622445268465-843d0b284e31?w=500" },
-      { id: 6, name: "ساعة فاخرة بحزام جلدي", price: 120, category: "watches", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500" },
-      { id: 7, name: "حقيبة سفر صغيرة للسفر", price: 50, category: "bags", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500" },
-      { id: 8, name: "مكبر صوت بلوتوث محمول", price: 40, category: "electronics", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500" }
-    ];
+    { id: 1, name: "سماعات لاسلكية عزل ضوضاء", price: 45, originalPrice: 60, rating: 4.5, category: "electronics", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" },
+    { id: 2, name: "ساعة ذكية مقاومة للماء", price: 80, originalPrice: 110, rating: 4.7, category: "watches", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" },
+    { id: 3, name: "حقيبة ظهر للكمبيوتر المحمول", price: 35, originalPrice: 50, rating: 4.3, category: "bags", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500" },
+    { id: 4, name: "نظارة شمسية كلاسيكية", price: 25, originalPrice: 35, rating: 4.2, category: "accessories", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500" },
+    { id: 5, name: "شاحن لاسلكي سريع 15 واط", price: 20, originalPrice: 30, rating: 4.6, category: "electronics", image: "https://images.unsplash.com/photo-1622445268465-843d0b284e31?w=500" },
+    { id: 6, name: "ساعة فاخرة بحزام جلدي", price: 120, originalPrice: 160, rating: 4.9, category: "watches", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500" },
+    { id: 7, name: "حقيبة سفر صغيرة للسفر", price: 50, originalPrice: 70, rating: 4.4, category: "bags", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500" },
+    { id: 8, name: "مكبر صوت بلوتوث محمول", price: 40, originalPrice: 55, rating: 4.7, category: "electronics", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500" }
+  ];
 
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
@@ -194,15 +194,21 @@
     const mobileSearch = document.getElementById('mobile-search');
     const checkoutForm = document.getElementById('checkout-form');
 
-    // عرض المنتجات
+   // عرض المنتجات
     function renderProducts(items) {
       productsContainer.innerHTML = items.map(product => `
         <div class="product-card bg-white rounded-lg border shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden">
           <div>
             <img src="${product.image}" alt="${product.name}">
             <div class="p-3">
+              <div class="flex items-center justify-between text-xs text-yellow-500 mb-1">
+                <span>★ ${product.rating}</span>
+              </div>
               <h3 class="font-semibold text-gray-800 line-clamp-2">${product.name}</h3>
-              <p class="text-emerald-600 font-bold text-sm mt-1">${product.price}$</p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-emerald-600 font-bold text-sm">${product.price}$</span>
+                <span class="text-gray-400 text-xs line-through">${product.originalPrice}$</span>
+              </div>
             </div>
           </div>
           <div class="p-3 pt-0">
