@@ -41,9 +41,14 @@
     </div>
 
     <div id="product-details" class="hidden bg-white rounded-2xl shadow-sm border p-6 md:p-8 grid md:grid-cols-2 gap-8 items-start">
-      <!-- صورة المنتج -->
-      <div class="w-full">
+      
+      <!-- معرِض الصور -->
+      <div class="w-full space-y-4">
         <img id="product-image" src="" alt="" class="w-full h-80 md:h-96 object-cover rounded-xl border">
+        <!-- مصغرات الصور الإضافية -->
+        <div id="gallery-container" class="flex gap-2 overflow-x-auto pb-2 hidden">
+          <!-- يتم عرض المصغرات هنا -->
+        </div>
       </div>
 
       <!-- تفاصيل المنتج -->
@@ -61,9 +66,11 @@
             <span id="product-original-price" class="text-gray-400 line-through text-lg hidden"></span>
           </div>
 
-          <p class="text-gray-600 text-sm leading-relaxed border-t pt-4">
-            منتج عالي الجودة متوفر حصرياً عبر متجر سوق بلس. اطلبه الآن وسيصلك أينما كنت مع ضمان الجودة والتوصيل السريع.
-          </p>
+          <!-- وصف المنتج الديناميكي -->
+          <div class="border-t pt-4">
+            <h3 class="font-bold text-gray-800 mb-1">وصف المنتج:</h3>
+            <p id="product-description" class="text-gray-600 text-sm leading-relaxed whitespace-pre-line"></p>
+          </div>
         </div>
 
         <div class="space-y-3 pt-4 border-t">
@@ -115,18 +122,18 @@
           originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
           rating: parseFloat(obj.rating) || 5.0,
           category: obj.catrgory || obj.category || 'الكل',
-          image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image'
+          image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image',
+          description: obj.description || 'لا يوجد وصف متاح لهذا المنتج.',
+          extraImage: obj.extra_image || obj.extraimage || ''
         };
       });
     }
 
-    // الحصول على id المنتج من رابط الصفحة ?id=X
     function getProductIdFromURL() {
       const params = new URLSearchParams(window.location.search);
       return parseInt(params.get('id'));
     }
 
-    // جلب بيانات المنتج
     async function loadProductDetails() {
       const productId = getProductIdFromURL();
       if (!productId) {
@@ -135,7 +142,8 @@
       }
 
       try {
-        const res = await fetch(SHEET_CSV_URL);
+        // إضافة _t لإلغاء الكاش المخبأ في المتصفح وجلب البيانات فوراً
+        const res = await fetch(`${SHEET_CSV_URL}&_t=${Date.now()}`);
         const csvText = await res.text();
         const products = parseCSV(csvText);
         
@@ -152,14 +160,17 @@
       }
     }
 
-    // عرض بيانات المنتج داخل الصفحة
     function renderDetails(product) {
       document.title = `${product.name} | سوق بلس`;
-      document.getElementById('product-image').src = product.image;
+      
+      const mainImg = document.getElementById('product-image');
+      mainImg.src = product.image;
+      
       document.getElementById('product-name').textContent = product.name;
       document.getElementById('product-category').textContent = product.category;
       document.getElementById('product-rating').textContent = `★ ${product.rating}`;
       document.getElementById('product-price').textContent = `${product.price}$`;
+      document.getElementById('product-description').textContent = product.description;
 
       if (product.originalPrice) {
         const origPriceEl = document.getElementById('product-original-price');
@@ -167,8 +178,27 @@
         origPriceEl.classList.remove('hidden');
       }
 
+      // إعداد معرض الصور الإضافية
+      const images = [product.image];
+      if (product.extraImage) {
+        const extraImgs = product.extraImage.split(',').map(s => s.trim());
+        images.push(...extraImgs);
+      }
+
+      if (images.length > 1) {
+        const galleryContainer = document.getElementById('gallery-container');
+        galleryContainer.innerHTML = images.map(imgSrc => `
+          <img src="${imgSrc}" class="w-16 h-16 object-cover rounded-lg border-2 cursor-pointer border-gray-200 hover:border-emerald-600 transition" onclick="changeMainImage('${imgSrc}')">
+        `).join('');
+        galleryContainer.classList.remove('hidden');
+      }
+
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('product-details').classList.remove('hidden');
+    }
+
+    function changeMainImage(src) {
+      document.getElementById('product-image').src = src;
     }
 
     function showNotFound() {
@@ -176,7 +206,6 @@
       document.getElementById('not-found').classList.remove('hidden');
     }
 
-    // إتاحة إضافة المنتج للسلة من صفحة التفاصيل
     document.getElementById('add-to-cart-btn').addEventListener('click', () => {
       if (!currentProduct) return;
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -192,7 +221,6 @@
       alert('تمت إضافة المنتج إلى السلة بنجاح!');
     });
 
-    // الشراء المباشر عبر الواتساب
     document.getElementById('buy-now-btn').addEventListener('click', () => {
       if (!currentProduct) return;
       const message = `مرحباً، أود الطلب المباشر للمنتج التالي:\n- *الاسم:* ${currentProduct.name}\n- *السعر:* ${currentProduct.price}$`;
