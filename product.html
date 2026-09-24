@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تفاصيل المنتج | سوق بلس</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts (Cairo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- الهيدر -->
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="text-2xl font-extrabold text-emerald-600 flex items-center gap-1">
+        <span>سوق</span><span class="text-gray-800">بلس</span>
+      </a>
+
+      <a href="index.html" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2">
+        <span>← العودة للمتجر</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- محتوى المنتج -->
+  <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+    <div id="loading" class="text-center py-12 text-gray-500 font-semibold">
+      جاري تحميل تفاصيل المنتج...
+    </div>
+
+    <div id="product-details" class="hidden bg-white rounded-2xl shadow-sm border p-6 md:p-8 grid md:grid-cols-2 gap-8 items-start">
+      <!-- صورة المنتج -->
+      <div class="w-full">
+        <img id="product-image" src="" alt="" class="w-full h-80 md:h-96 object-cover rounded-xl border">
+      </div>
+
+      <!-- تفاصيل المنتج -->
+      <div class="flex flex-col h-full justify-between space-y-6">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span id="product-category" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold"></span>
+            <span id="product-rating" class="text-yellow-500 text-sm font-bold">★ </span>
+          </div>
+
+          <h1 id="product-name" class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug"></h1>
+
+          <div class="flex items-center gap-3 my-4">
+            <span id="product-price" class="text-3xl font-extrabold text-emerald-600"></span>
+            <span id="product-original-price" class="text-gray-400 line-through text-lg hidden"></span>
+          </div>
+
+          <p class="text-gray-600 text-sm leading-relaxed border-t pt-4">
+            منتج عالي الجودة متوفر حصرياً عبر متجر سوق بلس. اطلبه الآن وسيصلك أينما كنت مع ضمان الجودة والتوصيل السريع.
+          </p>
+        </div>
+
+        <div class="space-y-3 pt-4 border-t">
+          <button id="add-to-cart-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2 text-base shadow-md hover:shadow-lg">
+            <span>إضافة إلى السلة</span>
+          </button>
+          
+          <button id="buy-now-btn" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2 text-base">
+            <span>شراء الآن عبر الواتساب</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- في حال عدم وجود المنتج -->
+    <div id="not-found" class="hidden text-center py-16">
+      <h2 class="text-2xl font-bold text-gray-700 mb-2">المنتج غير موجود!</h2>
+      <p class="text-gray-500 mb-6">عذراً، لم نتمكن من العثور على المنتج المطلوب.</p>
+      <a href="index.html" class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-700 transition">العودة للرئيسية</a>
+    </div>
+  </main>
+
+  <!-- الفوتر -->
+  <footer class="bg-gray-800 text-white py-6 text-center text-sm mt-12">
+    <p>© 2026 جميع الحقوق محفوظة لـ <strong>سوق بلس</strong></p>
+  </footer>
+
+  <script>
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
+    let currentProduct = null;
+
+    // دالة تحويل CSV
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length <= 1) return [];
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      
+      return lines.slice(1).map(line => {
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
+        let obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = values[i] || '';
+        });
+        return {
+          id: parseInt(obj.id) || Math.random(),
+          name: obj.name || 'منتج',
+          price: parseFloat(obj.price) || 0,
+          originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
+          rating: parseFloat(obj.rating) || 5.0,
+          category: obj.catrgory || obj.category || 'الكل',
+          image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image'
+        };
+      });
+    }
+
+    // الحصول على id المنتج من رابط الصفحة ?id=X
+    function getProductIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return parseInt(params.get('id'));
+    }
+
+    // جلب بيانات المنتج
+    async function loadProductDetails() {
+      const productId = getProductIdFromURL();
+      if (!productId) {
+        showNotFound();
+        return;
+      }
+
+      try {
+        const res = await fetch(SHEET_CSV_URL);
+        const csvText = await res.text();
+        const products = parseCSV(csvText);
+        
+        currentProduct = products.find(p => p.id === productId);
+
+        if (currentProduct) {
+          renderDetails(currentProduct);
+        } else {
+          showNotFound();
+        }
+      } catch (err) {
+        console.error('خطأ في تحميل المنتج:', err);
+        showNotFound();
+      }
+    }
+
+    // عرض بيانات المنتج داخل الصفحة
+    function renderDetails(product) {
+      document.title = `${product.name} | سوق بلس`;
+      document.getElementById('product-image').src = product.image;
+      document.getElementById('product-name').textContent = product.name;
+      document.getElementById('product-category').textContent = product.category;
+      document.getElementById('product-rating').textContent = `★ ${product.rating}`;
+      document.getElementById('product-price').textContent = `${product.price}$`;
+
+      if (product.originalPrice) {
+        const origPriceEl = document.getElementById('product-original-price');
+        origPriceEl.textContent = `${product.originalPrice}$`;
+        origPriceEl.classList.remove('hidden');
+      }
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('product-details').classList.remove('hidden');
+    }
+
+    function showNotFound() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('not-found').classList.remove('hidden');
+    }
+
+    // إتاحة إضافة المنتج للسلة من صفحة التفاصيل
+    document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+      if (!currentProduct) return;
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const existing = cart.find(item => item.id === currentProduct.id);
+
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ ...currentProduct, quantity: 1 });
+      }
+
+      localStorage.setItem('cart', JSON.stringify(cart));
+      alert('تمت إضافة المنتج إلى السلة بنجاح!');
+    });
+
+    // الشراء المباشر عبر الواتساب
+    document.getElementById('buy-now-btn').addEventListener('click', () => {
+      if (!currentProduct) return;
+      const message = `مرحباً، أود الطلب المباشر للمنتج التالي:\n- *الاسم:* ${currentProduct.name}\n- *السعر:* ${currentProduct.price}$`;
+      const whatsappNumber = "256766177669";
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    });
+
+    loadProductDetails();
+  </script>
+</body>
+</html>
