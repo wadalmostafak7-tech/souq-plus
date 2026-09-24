@@ -18,21 +18,18 @@
       font-family: 'Cairo', sans-serif;
     }
 
-    /* =========================================================
-       التعديلات الجديدة الخاصة بالتجاوب وعرض المنتجات
-       ========================================================= */
     /* التنسيق الأساسي للهواتف: منتجان في كل سطر */
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr); /* عرض منتجين متجاورين */
-      gap: 10px; /* مسافة بسيطة بين الكروت تناسب شاشة الهاتف */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
       padding: 10px;
     }
 
-    /* تنسيق الشاشات الكبيرة (الحواسيب والأجهزة اللوحية) */
+    /* تنسيق الشاشات الكبيرة */
     @media (min-width: 768px) {
       .products-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 منتجات في كل سطر على الحاسوب */
+        grid-template-columns: repeat(4, 1fr);
         gap: 20px;
         padding: 20px;
       }
@@ -40,21 +37,19 @@
 
     .product-card img {
       width: 100%;
-      height: 150px; /* ارتفاع مناسب للصور في العرض المزدوج */
+      height: 150px;
       object-fit: cover;
     }
 
     .product-card h3 {
-      font-size: 0.9rem; /* حجم مناسب لعنوان المنتج على الهاتف */
+      font-size: 0.9rem;
       margin: 5px 0;
     }
 
-    /* حركة انزلاق السلة الجانبية */
     .cart-drawer {
       transition: transform 0.3s ease-in-out;
     }
     
-    /* أنيميشن طيران المنتج إلى السلة */
     .flying-item {
       position: fixed;
       z-index: 9999;
@@ -70,18 +65,15 @@
   <!-- الهيدر وشريط الملاحة -->
   <header class="bg-white shadow-sm sticky top-0 z-40">
     <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <!-- الشعار -->
       <a href="#" class="text-2xl font-extrabold text-emerald-600 flex items-center gap-1">
         <span>سوق</span><span class="text-gray-800">بلس</span>
       </a>
 
-      <!-- شريط البحث (لأجهزة الحاسوب) -->
       <div class="hidden md:flex flex-1 max-w-md mx-4">
         <input type="text" id="desktop-search" placeholder="ابحث عن منتج..." class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
         <button class="bg-emerald-600 text-white px-4 py-2 rounded-l-lg hover:bg-emerald-700 transition">بحث</button>
       </div>
 
-      <!-- أزرار الإجراءات (السلة) -->
       <div class="flex items-center gap-3">
         <button id="cart-btn" class="relative p-2 text-gray-700 hover:text-emerald-600 transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,7 +84,6 @@
       </div>
     </div>
 
-    <!-- شريط البحث (للهواتف) -->
     <div class="p-2 border-t md:hidden">
       <input type="text" id="mobile-search" placeholder="ابحث عن منتج..." class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
     </div>
@@ -101,11 +92,7 @@
   <!-- التصنيفات -->
   <section class="bg-white border-b py-3">
     <div class="container mx-auto px-4 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none" id="categories-list">
-      <button class="category-btn active px-4 py-1.5 rounded-full text-sm font-semibold bg-emerald-600 text-white" data-category="all">الكل</button>
-      <button class="category-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-category="electronics">إلكترونيات</button>
-      <button class="category-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-category="watches">ساعات</button>
-      <button class="category-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-category="bags">حقائب</button>
-      <button class="category-btn px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200" data-category="accessories">إكسسوارات</button>
+      <!-- يتم توليد التصنيفات تلقائياً هنا -->
     </div>
   </section>
 
@@ -147,7 +134,6 @@
         <span id="cart-total" class="text-emerald-600">0$</span>
       </div>
 
-      <!-- نموذج معلومات التوصيل -->
       <form id="checkout-form" class="space-y-2">
         <input type="text" id="customer-name" placeholder="الاسم الكامل" required class="w-full px-3 py-2 text-sm border rounded focus:ring-1 focus:ring-emerald-500">
         <input type="tel" id="customer-phone" placeholder="رقم الهاتف" required class="w-full px-3 py-2 text-sm border rounded focus:ring-1 focus:ring-emerald-500">
@@ -167,48 +153,47 @@
 
   <!-- البرمجة التفاعلية JS -->
   <script>
-   // متغير المنتجات ورابط Google Sheet
-let products = [];
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
+    let products = [];
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
 
-// دالة تحويل CSV إلى بيانات منتجات
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (lines.length <= 1) return [];
+    // دالة تحويل CSV إلى بيانات منتجات
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length <= 1) return [];
 
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
-  
-  return lines.slice(1).map(line => {
-    const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
-    let obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = values[i] || '';
-    });
-    return {
-      id: parseInt(obj.id) || Math.random(),
-      name: obj.name || 'منتج',
-      price: parseFloat(obj.price) || 0,
-      originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
-      rating: parseFloat(obj.rating) || 5.0,
-      category: obj.catrgory || obj.category || 'الكل',
-      image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image'
-    };
-  });
-}
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      
+      return lines.slice(1).map(line => {
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
+        let obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = values[i] || '';
+        });
+        return {
+          id: parseInt(obj.id) || Math.random(),
+          name: obj.name || 'منتج',
+          price: parseFloat(obj.price) || 0,
+          originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
+          rating: parseFloat(obj.rating) || 5.0,
+          category: obj.catrgory || obj.category || 'الكل',
+          image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image'
+        };
+      });
+    }
 
-// دالة جلب المنتجات من Google Sheets
-async function fetchProducts() {
-  try {
-    const res = await fetch(SHEET_CSV_URL);
-    const csvText = await res.text();
-    products = parseCSV(csvText);
-    renderCategories();
-    renderProducts(products);
-  } catch (err) {
-    console.error('خطأ في جلب البيانات:', err);
-    productsContainer.innerHTML = `<p class="col-span-full text-center text-red-500 py-8">تعذر تحميل المنتجات.</p>`;
-  }
-}
+    // دالة جلب المنتجات من Google Sheets
+    async function fetchProducts() {
+      try {
+        const res = await fetch(SHEET_CSV_URL);
+        const csvText = await res.text();
+        products = parseCSV(csvText);
+        renderCategories();
+        renderProducts(products);
+      } catch (err) {
+        console.error('خطأ في جلب البيانات:', err);
+        productsContainer.innerHTML = `<p class="col-span-full text-center text-red-500 py-8">تعذر تحميل المنتجات.</p>`;
+      }
+    }
 
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
@@ -225,7 +210,7 @@ async function fetchProducts() {
     const mobileSearch = document.getElementById('mobile-search');
     const checkoutForm = document.getElementById('checkout-form');
 
- // عرض المنتجات (مع تحويل الكارت لفتح صفحة التفاصيل)
+    // عرض المنتجات
     function renderProducts(items) {
       if (items.length === 0) {
         productsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">لا توجد منتجات متاحة.</p>`;
@@ -346,42 +331,40 @@ async function fetchProducts() {
     };
 
     // إرسال الطلب عبر الواتساب
-   checkoutForm.addEventListener('submit', function(e) {
-  e.preventDefault();
-  if (cart.length === 0) {
-    alert('السلة فارغة!');
-    return;
-  }
+    checkoutForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (cart.length === 0) {
+        alert('السلة فارغة!');
+        return;
+      }
 
-  const name = document.getElementById('customer-name').value;
-  const phone = document.getElementById('customer-phone').value;
-  const address = document.getElementById('customer-address').value;
+      const name = document.getElementById('customer-name').value;
+      const phone = document.getElementById('customer-phone').value;
+      const address = document.getElementById('customer-address').value;
 
-  let message = `*طلب جديد من متجر بلس* 🛍️\n\n`;
-  message += `*الاسم:* ${name}\n`;
-  message += `*الهاتف:* ${phone}\n`;
-  message += `*العنوان:* ${address}\n\n`;
-  message += `*المنتجات:*\n`;
+      let message = `*طلب جديد من متجر بلس* 🛍️\n\n`;
+      message += `*الاسم:* ${name}\n`;
+      message += `*الهاتف:* ${phone}\n`;
+      message += `*العنوان:* ${address}\n\n`;
+      message += `*المنتجات:*\n`;
 
-  cart.forEach((item, index) => {
-    message += `${index + 1}. ${item.name} (${item.quantity}×) - ${item.price * item.quantity}$\n`;
-  });
+      cart.forEach((item, index) => {
+        message += `${index + 1}. ${item.name} (${item.quantity}×) - ${item.price * item.quantity}$\n`;
+      });
 
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  message += `\n*المبلغ الإجمالي:* ${total}$\n\nفي انتظار تأكيد الطلب وطريقة الدفع المناسبة.\nشكراً لك!`;
+      const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      message += `\n*المبلغ الإجمالي:* ${total}$\n\nفي انتظار تأكيد الطلب وطريقة الدفع المناسبة.\nشكراً لك!`;
 
-  const whatsappNumber = "256766177669";
-  const encodedMessage = encodeURIComponent(message);
-  
-  // فتح الواتساب
-  window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+      const whatsappNumber = "256766177669";
+      const encodedMessage = encodeURIComponent(message);
+      
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
 
-  // تفريغ السلة وإغلاق النافذة الجانبية بعد إرسال الطلب
-  cart = [];
-  updateCart();
-  cartDrawer.classList.add('-translate-x-full');
-  cartOverlay.classList.add('hidden');
-});
+      cart = [];
+      updateCart();
+      cartDrawer.classList.add('-translate-x-full');
+      cartOverlay.classList.add('hidden');
+    });
 
     // أحداث فتح/إغلاق السلة
     cartBtn.addEventListener('click', () => {
@@ -398,6 +381,7 @@ async function fetchProducts() {
       cartDrawer.classList.add('-translate-x-full');
       cartOverlay.classList.add('hidden');
     });
+
     const clearCartBtn = document.getElementById('clear-cart-btn');
     clearCartBtn.addEventListener('click', () => {
       if (cart.length === 0) return;
@@ -407,32 +391,33 @@ async function fetchProducts() {
       }
     });
 
-   // إنشاء التصنيفات تلقائياً من العمود الموجود في الشيت
-function renderCategories() {
-  const categoriesList = document.getElementById('categories-list');
-  if (!categoriesList) return;
+    // إنشاء التصنيفات تلقائياً من العمود الموجود في الشيت
+    function renderCategories() {
+      const categoriesList = document.getElementById('categories-list');
+      if (!categoriesList) return;
 
-  const categories = ['الكل', ...new Set(products.map(p => p.category))];
-  categoriesList.innerHTML = categories.map((cat, idx) => `
-    <button class="category-btn ${idx === 0 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} px-4 py-1.5 rounded-full text-sm font-semibold transition" data-category="${cat}">
-      ${cat}
-    </button>
-  `).join('');
+      const categories = ['الكل', ...new Set(products.map(p => p.category))];
+      categoriesList.innerHTML = categories.map((cat, idx) => `
+        <button class="category-btn ${idx === 0 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} px-4 py-1.5 rounded-full text-sm font-semibold transition" data-category="${cat}">
+          ${cat}
+        </button>
+      `).join('');
 
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.category-btn').forEach(b => {
-        b.classList.remove('bg-emerald-600', 'text-white');
-        b.classList.add('bg-gray-100', 'text-gray-600');
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('bg-emerald-600', 'text-white');
+            b.classList.add('bg-gray-100', 'text-gray-600');
+          });
+          e.target.classList.add('bg-emerald-600', 'text-white');
+          e.target.classList.remove('bg-gray-100', 'text-gray-600');
+
+          const cat = e.target.dataset.category;
+          renderProducts(cat === 'الكل' ? products : products.filter(p => p.category === cat));
+        });
       });
-      e.target.classList.add('bg-emerald-600', 'text-white');
-      e.target.classList.remove('bg-gray-100', 'text-gray-600');
+    }
 
-      const cat = e.target.dataset.category;
-      renderProducts(cat === 'الكل' ? products : products.filter(p => p.category === cat));
-    });
-  });
-}
     // البحث
     function handleSearch(query) {
       const q = query.toLowerCase();
@@ -444,7 +429,7 @@ function renderCategories() {
     mobileSearch.addEventListener('input', (e) => handleSearch(e.target.value));
 
     // التشغيل المبدئي
-   fetchProducts();
+    fetchProducts();
     updateCart();
   </script>
 </body>
