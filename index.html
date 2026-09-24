@@ -167,17 +167,48 @@
 
   <!-- البرمجة التفاعلية JS -->
   <script>
-    // قائمة المنتجات
-    const products = [
-    { id: 1, name: "سماعات لاسلكية عزل ضوضاء", price: 45, originalPrice: 60, rating: 4.5, category: "electronics", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" },
-    { id: 2, name: "ساعة ذكية مقاومة للماء", price: 80, originalPrice: 110, rating: 4.7, category: "watches", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" },
-    { id: 3, name: "حقيبة ظهر للكمبيوتر المحمول", price: 35, originalPrice: 50, rating: 4.3, category: "bags", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500" },
-    { id: 4, name: "نظارة شمسية كلاسيكية", price: 25, originalPrice: 35, rating: 4.2, category: "accessories", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500" },
-    { id: 5, name: "شاحن لاسلكي سريع 15 واط", price: 20, originalPrice: 30, rating: 4.6, category: "electronics", image: "https://images.unsplash.com/photo-1622445268465-843d0b284e31?w=500" },
-    { id: 6, name: "ساعة فاخرة بحزام جلدي", price: 120, originalPrice: 160, rating: 4.9, category: "watches", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500" },
-    { id: 7, name: "حقيبة سفر صغيرة للسفر", price: 50, originalPrice: 70, rating: 4.4, category: "bags", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500" },
-    { id: 8, name: "مكبر صوت بلوتوث محمول", price: 40, originalPrice: 55, rating: 4.7, category: "electronics", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500" }
-  ];
+   // متغير المنتجات ورابط Google Sheet
+let products = [];
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
+
+// دالة تحويل CSV إلى بيانات منتجات
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length <= 1) return [];
+
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+  
+  return lines.slice(1).map(line => {
+    const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
+    let obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = values[i] || '';
+    });
+    return {
+      id: parseInt(obj.id) || Math.random(),
+      name: obj.name || 'منتج',
+      price: parseFloat(obj.price) || 0,
+      originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
+      rating: parseFloat(obj.rating) || 5.0,
+      category: obj.catrgory || obj.category || 'الكل',
+      image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image'
+    };
+  });
+}
+
+// دالة جلب المنتجات من Google Sheets
+async function fetchProducts() {
+  try {
+    const res = await fetch(SHEET_CSV_URL);
+    const csvText = await res.text();
+    products = parseCSV(csvText);
+    renderCategories();
+    renderProducts(products);
+  } catch (err) {
+    console.error('خطأ في جلب البيانات:', err);
+    productsContainer.innerHTML = `<p class="col-span-full text-center text-red-500 py-8">تعذر تحميل المنتجات.</p>`;
+  }
+}
 
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
@@ -194,24 +225,29 @@
     const mobileSearch = document.getElementById('mobile-search');
     const checkoutForm = document.getElementById('checkout-form');
 
-   // عرض المنتجات
+ // عرض المنتجات (مع تحويل الكارت لفتح صفحة التفاصيل)
     function renderProducts(items) {
+      if (items.length === 0) {
+        productsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">لا توجد منتجات متاحة.</p>`;
+        return;
+      }
+
       productsContainer.innerHTML = items.map(product => `
-        <div class="product-card bg-white rounded-lg border shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden">
+        <div class="product-card bg-white rounded-lg border shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden cursor-pointer" onclick="window.location.href='product.html?id=${product.id}'">
           <div>
-            <img src="${product.image}" alt="${product.name}">
+            <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
             <div class="p-3">
               <div class="flex items-center justify-between text-xs text-yellow-500 mb-1">
                 <span>★ ${product.rating}</span>
               </div>
-              <h3 class="font-semibold text-gray-800 line-clamp-2">${product.name}</h3>
-              <div class="flex items-center gap-2 mt-1">
-                <span class="text-emerald-600 font-bold text-sm">${product.price}$</span>
-                <span class="text-gray-400 text-xs line-through">${product.originalPrice}$</span>
+              <h3 class="font-semibold text-gray-800 text-sm line-clamp-2">${product.name}</h3>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-emerald-600 font-bold text-base">${product.price}$</span>
+                ${product.originalPrice ? `<span class="text-gray-400 text-xs line-through">${product.originalPrice}$</span>` : ''}
               </div>
             </div>
           </div>
-          <div class="p-3 pt-0">
+          <div class="p-3 pt-0" onclick="event.stopPropagation()">
             <button onclick="addToCart(${product.id}, event)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm py-2 rounded font-semibold transition flex items-center justify-center gap-1">
               <span>إضافة للسلة</span>
             </button>
@@ -371,25 +407,32 @@
       }
     });
 
-    // فلترة التصنيفات
-    document.querySelectorAll('.category-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.category-btn').forEach(b => {
-          b.classList.remove('bg-emerald-600', 'text-white');
-          b.classList.add('bg-gray-100', 'text-gray-600');
-        });
-        e.target.classList.add('bg-emerald-600', 'text-white');
-        e.target.classList.remove('bg-gray-100', 'text-gray-600');
+   // إنشاء التصنيفات تلقائياً من العمود الموجود في الشيت
+function renderCategories() {
+  const categoriesList = document.getElementById('categories-list');
+  if (!categoriesList) return;
 
-        const cat = e.target.dataset.category;
-        if (cat === 'all') {
-          renderProducts(products);
-        } else {
-          renderProducts(products.filter(p => p.category === cat));
-        }
+  const categories = ['الكل', ...new Set(products.map(p => p.category))];
+  categoriesList.innerHTML = categories.map((cat, idx) => `
+    <button class="category-btn ${idx === 0 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} px-4 py-1.5 rounded-full text-sm font-semibold transition" data-category="${cat}">
+      ${cat}
+    </button>
+  `).join('');
+
+  document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.category-btn').forEach(b => {
+        b.classList.remove('bg-emerald-600', 'text-white');
+        b.classList.add('bg-gray-100', 'text-gray-600');
       });
-    });
+      e.target.classList.add('bg-emerald-600', 'text-white');
+      e.target.classList.remove('bg-gray-100', 'text-gray-600');
 
+      const cat = e.target.dataset.category;
+      renderProducts(cat === 'الكل' ? products : products.filter(p => p.category === cat));
+    });
+  });
+}
     // البحث
     function handleSearch(query) {
       const q = query.toLowerCase();
@@ -401,7 +444,7 @@
     mobileSearch.addEventListener('input', (e) => handleSearch(e.target.value));
 
     // التشغيل المبدئي
-    renderProducts(products);
+   fetchProducts();
     updateCart();
   </script>
 </body>
