@@ -58,14 +58,15 @@
             <span id="product-category" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold"></span>
             <span id="product-rating" class="text-yellow-500 text-sm font-bold">★ </span>
           </div>
+        <h1 id="product-name" class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug mb-3"></h1>
 
-          <h1 id="product-name" class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug"></h1>
-
-          <div class="flex items-center gap-3 my-4">
+          <div class="flex items-center gap-3 my-3">
             <span id="product-price" class="text-3xl font-extrabold text-emerald-600"></span>
             <span id="product-original-price" class="text-gray-400 line-through text-lg hidden"></span>
           </div>
 
+          <!-- شريط تنبيه المخزون المتبقي -->
+          <div id="stock-notice" class="hidden my-3"></div>
           <!-- وصف المنتج الديناميكي -->
           <div class="border-t pt-4">
             <h3 class="font-bold text-gray-800 mb-1">وصف المنتج:</h3>
@@ -102,7 +103,7 @@
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
     let currentProduct = null;
 
-    // دالة تحويل CSV
+   // دالة تحويل CSV
     function parseCSV(text) {
       const lines = text.trim().split('\n');
       if (lines.length <= 1) return [];
@@ -110,7 +111,7 @@
       const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
       
       return lines.slice(1).map(line => {
-        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
         let obj = {};
         headers.forEach((h, i) => {
           obj[h] = values[i] || '';
@@ -124,7 +125,9 @@
           category: obj.catrgory || obj.category || 'الكل',
           image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image',
           description: obj.description || 'لا يوجد وصف متاح لهذا المنتج.',
-          extraImage: obj.extra_image || obj.extraimage || ''
+          extraImage: obj.extra_image || obj.extraimage || '',
+          // جلب الكمية المتبقية
+          stock: obj.stock !== undefined && obj.stock !== '' ? parseInt(obj.stock) : 10
         };
       });
     }
@@ -160,7 +163,7 @@
       }
     }
 
-    function renderDetails(product) {
+   function renderDetails(product) {
       document.title = `${product.name} | سوق بلس`;
       
       const mainImg = document.getElementById('product-image');
@@ -176,6 +179,32 @@
         const origPriceEl = document.getElementById('product-original-price');
         origPriceEl.textContent = `${product.originalPrice}$`;
         origPriceEl.classList.remove('hidden');
+      }
+
+      // تنبيه كمية المخزون المتبقية وتحديث حالة الأزرار
+      const stockNoticeEl = document.getElementById('stock-notice');
+      const addToCartBtn = document.getElementById('add-to-cart-btn');
+      const buyNowBtn = document.getElementById('buy-now-btn');
+
+      if (stockNoticeEl) {
+        if (product.stock > 0 && product.stock <= 5) {
+          stockNoticeEl.className = "text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200 flex items-center gap-1.5 animate-pulse";
+          stockNoticeEl.innerHTML = `⚠️ سارع بالطلب! متبقي <b>${product.stock}</b> قطع فقط في المخزون.`;
+          stockNoticeEl.classList.remove('hidden');
+        } else if (product.stock <= 0) {
+          stockNoticeEl.className = "text-xs font-bold text-gray-600 bg-gray-100 p-2.5 rounded-lg border border-gray-200";
+          stockNoticeEl.innerHTML = `❌ عذراً، هذا المنتج غير متوفر حالياً.`;
+          stockNoticeEl.classList.remove('hidden');
+          
+          if (addToCartBtn) {
+            addToCartBtn.disabled = true;
+            addToCartBtn.className = "w-full bg-gray-300 text-gray-500 py-3.5 rounded-xl font-bold cursor-not-allowed text-base";
+            addToCartBtn.innerText = "نفدت الكمية";
+          }
+          if (buyNowBtn) buyNowBtn.classList.add('hidden');
+        } else {
+          stockNoticeEl.classList.add('hidden');
+        }
       }
 
       // إعداد معرض الصور الإضافية
