@@ -103,10 +103,10 @@
     </div>
   </main>
 
-  <!-- السلة الجانبية (Drawer) -->
+ <!-- السلة الجانبية (Drawer) -->
   <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-50 hidden"></div>
   <aside id="cart-drawer" class="cart-drawer fixed top-0 left-0 w-full sm:w-96 h-full bg-white z-50 shadow-2xl flex flex-col transform -translate-x-full">
-   <div class="p-4 border-b flex items-center justify-between bg-emerald-600 text-white">
+    <div class="p-4 border-b flex items-center justify-between bg-emerald-600 text-white">
       <h2 class="text-lg font-bold flex items-center gap-2">
         <span>سلة المشتريات</span>
       </h2>
@@ -121,6 +121,40 @@
         </button>
       </div>
     </div>
+
+    <!-- قائمة عناصر السلة -->
+    <div id="cart-items" class="flex-grow p-4 overflow-y-auto divide-y">
+      <!-- عناصر السلة تظهر هنا -->
+    </div>
+
+    <!-- نموذج الطلب وإجمالي الحساب -->
+    <div class="p-4 border-t bg-gray-50 space-y-3">
+      <div class="flex justify-between items-center text-lg font-bold">
+        <span>الإجمالي:</span>
+        <span id="cart-total" class="text-emerald-600">0$</span>
+      </div>
+
+      <form id="checkout-form" class="space-y-2">
+        <input type="text" id="customer-name" placeholder="الاسم الكامل" required class="w-full px-3 py-2 text-sm border rounded focus:ring-1 focus:ring-emerald-500">
+        <input type="tel" id="customer-phone" placeholder="رقم الهاتف" required class="w-full px-3 py-2 text-sm border rounded focus:ring-1 focus:ring-emerald-500">
+        <input type="text" id="customer-address" placeholder="العنوان / المدينة" required class="w-full px-3 py-2 text-sm border rounded focus:ring-1 focus:ring-emerald-500">
+        
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-bold transition flex items-center justify-center gap-2">
+          <span>إرسال الطلب عبر الواتساب</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- الفوتر -->
+  <footer class="bg-gray-800 text-white mt-12 py-6 text-center text-sm">
+    <p>© 2026 جميع الحقوق محفوظة لـ <strong>سوق بلس</strong></p>
+  </footer>
+
+  <!-- البرمجة التفاعلية JS -->
+  <script>
+    let products = [];
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
 
    // دالة تحويل CSV إلى بيانات منتجات
     function parseCSV(text) {
@@ -143,48 +177,11 @@
           rating: parseFloat(obj.rating) || 5.0,
           category: obj.catrgory || obj.category || 'الكل',
           image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image',
-          // جلب الكمية المتبقية (إذا لم تُحدد نعتبرها 10)
+          // جلب الكمية المتبقية
           stock: obj.stock !== undefined && obj.stock !== '' ? parseInt(obj.stock) : 10
         };
       });
     }
-  </aside>
-
-  <!-- الفوتر -->
-  <footer class="bg-gray-800 text-white mt-12 py-6 text-center text-sm">
-    <p>© 2026 جميع الحقوق محفوظة لـ <strong>سوق بلس</strong></p>
-  </footer>
-
-  <!-- البرمجة التفاعلية JS -->
-  <script>
-    let products = [];
-    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
-
-    // دالة تحويل CSV إلى بيانات منتجات
-    function parseCSV(text) {
-      const lines = text.trim().split('\n');
-      if (lines.length <= 1) return [];
-
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
-      
-      return lines.slice(1).map(line => {
-        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
-        let obj = {};
-        headers.forEach((h, i) => {
-          obj[h] = values[i] || '';
-        });
-        return {
-          id: parseInt(obj.id) || Math.random(),
-          name: obj.name || 'منتج',
-          price: parseFloat(obj.price) || 0,
-          originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
-          rating: parseFloat(obj.rating) || 5.0,
-          category: obj.catrgory || obj.category || 'الكل',
-          image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image'
-        };
-      });
-    }
-
     // دالة جلب المنتجات من Google Sheets
     async function fetchProducts() {
       try {
