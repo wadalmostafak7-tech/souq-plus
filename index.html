@@ -65,7 +65,7 @@
   <!-- الهيدر وشريط الملاحة -->
   <header class="bg-white shadow-sm sticky top-0 z-40">
     <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <a href="#" class="text-2xl font-extrabold text-emerald-600 flex items-center gap-1">
+      <a href="index.html" class="text-2xl font-extrabold text-emerald-600 flex items-center gap-1">
         <span>سوق</span><span class="text-gray-800">بلس</span>
       </a>
 
@@ -103,7 +103,7 @@
     </div>
   </main>
 
- <!-- السلة الجانبية (Drawer) -->
+  <!-- السلة الجانبية (Drawer) -->
   <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-50 hidden"></div>
   <aside id="cart-drawer" class="cart-drawer fixed top-0 left-0 w-full sm:w-96 h-full bg-white z-50 shadow-2xl flex flex-col transform -translate-x-full">
     <div class="p-4 border-b flex items-center justify-between bg-emerald-600 text-white">
@@ -156,7 +156,7 @@
     let products = [];
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
 
-   // دالة تحويل CSV إلى بيانات منتجات
+    // دالة تحويل CSV إلى بيانات منتجات
     function parseCSV(text) {
       const lines = text.trim().split('\n');
       if (lines.length <= 1) return [];
@@ -164,28 +164,28 @@
       const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
       
       return lines.slice(1).map(line => {
-        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
         let obj = {};
         headers.forEach((h, i) => {
           obj[h] = values[i] || '';
         });
         return {
-          id: parseInt(obj.id) || Math.random(),
+          id: parseInt(obj.id),
           name: obj.name || 'منتج',
           price: parseFloat(obj.price) || 0,
           originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
           rating: parseFloat(obj.rating) || 5.0,
-          category: obj.catrgory || obj.category || 'الكل',
+          category: obj.catrgory || obj.category || 'عام',
           image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image',
-          // جلب الكمية المتبقية
-          stock: obj.stock !== undefined && obj.stock !== '' ? parseInt(obj.stock) : 10
+          stock: (obj.stock !== undefined && obj.stock !== '') ? parseInt(obj.stock) : ((obj.quantity !== undefined && obj.quantity !== '') ? parseInt(obj.quantity) : 10)
         };
-      });
+      }).filter(p => !isNaN(p.id) && p.name.trim() !== '');
     }
+
     // دالة جلب المنتجات من Google Sheets
     async function fetchProducts() {
       try {
-       const res = await fetch(`${SHEET_CSV_URL}&_t=${Date.now()}`);
+        const res = await fetch(`${SHEET_CSV_URL}&_t=${Date.now()}`);
         const csvText = await res.text();
         products = parseCSV(csvText);
         renderCategories();
@@ -211,7 +211,7 @@
     const mobileSearch = document.getElementById('mobile-search');
     const checkoutForm = document.getElementById('checkout-form');
 
-  // عرض المنتجات
+    // عرض المنتجات
     function renderProducts(items) {
       if (items.length === 0) {
         productsContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">لا توجد منتجات متاحة.</p>`;
@@ -219,7 +219,6 @@
       }
 
       productsContainer.innerHTML = items.map(product => {
-        // تجهيز التنبيه حسب الكمية
         let stockBadge = '';
         if (product.stock > 0 && product.stock <= 5) {
           stockBadge = `<span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow animate-pulse z-10">متبقي ${product.stock} قطع فقط!</span>`;
@@ -255,6 +254,7 @@
 
     // حركة طيران المنتج عند الإضافة للسلة
     function animateFlyToCart(imgElement) {
+      if (!imgElement) return;
       const imgRect = imgElement.getBoundingClientRect();
       const cartRect = cartBtn.getBoundingClientRect();
 
@@ -283,6 +283,8 @@
     // إضافة إلى السلة
     window.addToCart = function(id, event) {
       const product = products.find(p => p.id === id);
+      if (!product) return;
+
       const existing = cart.find(item => item.id === id);
 
       if (existing) {
@@ -291,9 +293,13 @@
         cart.push({ ...product, quantity: 1 });
       }
 
-      const card = event.target.closest('.product-card');
-      const img = card.querySelector('img');
-      animateFlyToCart(img);
+      if (event) {
+        const card = event.target.closest('.product-card');
+        if (card) {
+          const img = card.querySelector('img');
+          animateFlyToCart(img);
+        }
+      }
 
       updateCart();
     };
@@ -315,15 +321,15 @@
 
       cartItems.innerHTML = cart.map(item => `
         <div class="py-3 flex items-center justify-between gap-2">
-          <img src="${item.image}" class="w-12 h-12 rounded object-cover">
+          <img src="${item.image}" class="w-12 h-12 rounded object-cover" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
           <div class="flex-grow">
             <h4 class="text-xs font-semibold text-gray-800 line-clamp-1">${item.name}</h4>
             <p class="text-xs text-emerald-600 font-bold">${item.price}$ × ${item.quantity}</p>
           </div>
           <div class="flex items-center gap-1">
-            <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 bg-gray-200 rounded text-xs font-bold">-</button>
-            <span class="text-xs px-1">${item.quantity}</span>
-            <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 bg-gray-200 rounded text-xs font-bold">+</button>
+            <button onclick="changeQty(${item.id}, -1)" class="w-6 h-6 bg-gray-200 rounded text-xs font-bold hover:bg-gray-300 transition">-</button>
+            <span class="text-xs px-1 font-semibold">${item.quantity}</span>
+            <button onclick="changeQty(${item.id}, 1)" class="w-6 h-6 bg-gray-200 rounded text-xs font-bold hover:bg-gray-300 transition">+</button>
           </div>
         </div>
       `).join('');
@@ -354,7 +360,7 @@
       const phone = document.getElementById('customer-phone').value;
       const address = document.getElementById('customer-address').value;
 
-      let message = `*طلب جديد من متجر بلس* 🛍️\n\n`;
+      let message = `*طلب جديد من متجر سوق بلس* 🛍️\n\n`;
       message += `*الاسم:* ${name}\n`;
       message += `*الهاتف:* ${phone}\n`;
       message += `*العنوان:* ${address}\n\n`;
@@ -408,7 +414,9 @@
       const categoriesList = document.getElementById('categories-list');
       if (!categoriesList) return;
 
-      const categories = ['الكل', ...new Set(products.map(p => p.category))];
+      const rawCategories = products.map(p => p.category).filter(c => c && c.trim() !== '');
+      const categories = ['الكل', ...new Set(rawCategories)];
+
       categoriesList.innerHTML = categories.map((cat, idx) => `
         <button class="category-btn ${idx === 0 ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} px-4 py-1.5 rounded-full text-sm font-semibold transition" data-category="${cat}">
           ${cat}
