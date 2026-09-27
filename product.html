@@ -42,7 +42,7 @@
 
     <div id="product-details" class="hidden bg-white rounded-2xl shadow-sm border p-6 md:p-8 grid md:grid-cols-2 gap-8 items-start">
       
-      <!-- معرِض الصور -->
+      <!-- معرض الصور -->
       <div class="w-full space-y-4">
         <img id="product-image" src="" alt="" class="w-full h-80 md:h-96 object-cover rounded-xl border">
         <!-- مصغرات الصور الإضافية -->
@@ -75,7 +75,17 @@
           </div>
         </div>
 
-        <div class="space-y-3 pt-4 border-t">
+        <div class="space-y-4 pt-4 border-t">
+          <!-- خيار تحديد الكمية -->
+          <div id="quantity-section" class="flex items-center justify-between gap-4">
+            <label for="quantity-input" class="font-bold text-gray-700 text-sm">الكمية المطلوب شراءها:</label>
+            <div class="flex items-center border rounded-xl overflow-hidden bg-gray-50 border-gray-200">
+              <button id="decrease-qty-btn" type="button" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition select-none">-</button>
+              <input type="number" id="quantity-input" value="1" min="1" class="w-14 text-center bg-transparent text-sm font-bold focus:outline-none py-1.5 border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+              <button id="increase-qty-btn" type="button" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition select-none">+</button>
+            </div>
+          </div>
+
           <button id="add-to-cart-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2 text-base shadow-md hover:shadow-lg">
             <span>إضافة إلى السلة</span>
           </button>
@@ -95,7 +105,7 @@
     </div>
   </main>
 
-  <!-- نافذة طلب البيانات الشراء المباشر (Modal) -->
+  <!-- نافذة طلب البيانات للشراء المباشر (Modal) -->
   <div id="checkout-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative animate-fade-in">
       <button id="close-modal-btn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
@@ -212,6 +222,7 @@
       const stockNoticeEl = document.getElementById('stock-notice');
       const addToCartBtn = document.getElementById('add-to-cart-btn');
       const buyNowBtn = document.getElementById('buy-now-btn');
+      const qtySection = document.getElementById('quantity-section');
 
       if (stockNoticeEl) {
         if (product.stock > 0 && product.stock <= 5) {
@@ -229,6 +240,7 @@
             addToCartBtn.innerText = "نفدت الكمية";
           }
           if (buyNowBtn) buyNowBtn.classList.add('hidden');
+          if (qtySection) qtySection.classList.add('hidden');
         } else {
           stockNoticeEl.classList.add('hidden');
         }
@@ -262,19 +274,59 @@
       document.getElementById('not-found').classList.remove('hidden');
     }
 
+    // التحكم بالكمية (أزرار زيادة ونقصان والمدخل)
+    const qtyInput = document.getElementById('quantity-input');
+    const increaseBtn = document.getElementById('increase-qty-btn');
+    const decreaseBtn = document.getElementById('decrease-qty-btn');
+
+    increaseBtn.addEventListener('click', () => {
+      let currentVal = parseInt(qtyInput.value) || 1;
+      if (currentProduct && currentVal < currentProduct.stock) {
+        qtyInput.value = currentVal + 1;
+      } else if (currentProduct) {
+        alert(`عذراً، الحد الأقصى المتاح في المخزون هو ${currentProduct.stock} قطع.`);
+      }
+    });
+
+    decreaseBtn.addEventListener('click', () => {
+      let currentVal = parseInt(qtyInput.value) || 1;
+      if (currentVal > 1) {
+        qtyInput.value = currentVal - 1;
+      }
+    });
+
+    qtyInput.addEventListener('change', () => {
+      let currentVal = parseInt(qtyInput.value);
+      if (isNaN(currentVal) || currentVal < 1) {
+        qtyInput.value = 1;
+      } else if (currentProduct && currentVal > currentProduct.stock) {
+        alert(`عذراً، الحد الأقصى المتاح في المخزون هو ${currentProduct.stock} قطع.`);
+        qtyInput.value = currentProduct.stock;
+      }
+    });
+
+    // إضافة إلى السلة بالكمية المحددة
     document.getElementById('add-to-cart-btn').addEventListener('click', () => {
       if (!currentProduct) return;
+      
+      const requestedQty = parseInt(qtyInput.value) || 1;
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
       const existing = cart.find(item => item.id === currentProduct.id);
+      const currentQtyInCart = existing ? existing.quantity : 0;
+
+      if (currentQtyInCart + requestedQty > currentProduct.stock) {
+        alert(`عذراً، لا يمكنك إضافة هذه الكمية. المخزون المتاح: ${currentProduct.stock}، والموجود في السلة لديك: ${currentQtyInCart}.`);
+        return;
+      }
 
       if (existing) {
-        existing.quantity += 1;
+        existing.quantity += requestedQty;
       } else {
-        cart.push({ ...currentProduct, quantity: 1 });
+        cart.push({ ...currentProduct, quantity: requestedQty });
       }
 
       localStorage.setItem('cart', JSON.stringify(cart));
-      alert('تمت إضافة المنتج إلى السلة بنجاح!');
+      alert(`تمت إضافة (${requestedQty}) قطعة من المنتج إلى السلة بنجاح!`);
     });
 
     // التحكم بالنافذة المنبثقة للطلب المباشر
@@ -292,13 +344,16 @@
       e.preventDefault();
       if (!currentProduct) return;
 
+      const requestedQty = parseInt(qtyInput.value) || 1;
       const name = document.getElementById('cust-name').value;
       const phone = document.getElementById('cust-phone').value;
       const address = document.getElementById('cust-address').value;
+      const totalPrice = currentProduct.price * requestedQty;
 
       const message = `مرحباً، أود تقديم طلب شراء جديد:\n\n` +
                       `📦 *المنتج:* ${currentProduct.name}\n` +
-                      `💰 *السعر:* ${currentProduct.price}$\n\n` +
+                      `🔢 *الكمية:* ${requestedQty}\n` +
+                      `💰 *الإجمالي:* ${totalPrice}$\n\n` +
                       `👤 *بيانات المشتري:*\n` +
                       `- *الاسم:* ${name}\n` +
                       `- *الهاتف:* ${phone}\n` +
