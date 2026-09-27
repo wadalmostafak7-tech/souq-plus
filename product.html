@@ -58,7 +58,7 @@
             <span id="product-category" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold"></span>
             <span id="product-rating" class="text-yellow-500 text-sm font-bold">★ </span>
           </div>
-        <h1 id="product-name" class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug mb-3"></h1>
+          <h1 id="product-name" class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug mb-3"></h1>
 
           <div class="flex items-center gap-3 my-3">
             <span id="product-price" class="text-3xl font-extrabold text-emerald-600"></span>
@@ -67,6 +67,7 @@
 
           <!-- شريط تنبيه المخزون المتبقي -->
           <div id="stock-notice" class="hidden my-3"></div>
+          
           <!-- وصف المنتج الديناميكي -->
           <div class="border-t pt-4">
             <h3 class="font-bold text-gray-800 mb-1">وصف المنتج:</h3>
@@ -94,6 +95,35 @@
     </div>
   </main>
 
+  <!-- نافذة طلب البيانات الشراء المباشر (Modal) -->
+  <div id="checkout-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative animate-fade-in">
+      <button id="close-modal-btn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+      
+      <h2 class="text-xl font-bold text-gray-900 mb-1">إكمال طلب الشراء</h2>
+      <p class="text-xs text-gray-500 mb-4">يرجى إدخال بياناتك لتجهيز الطلب وتحويلك للواتساب.</p>
+
+      <form id="direct-buy-form" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">الاسم الكامل *</label>
+          <input type="text" id="cust-name" required placeholder="أدخل اسمك" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">رقم الهاتف *</label>
+          <input type="tel" id="cust-phone" required placeholder="05xxxxxxx" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1">العنوان / المدينة *</label>
+          <input type="text" id="cust-address" required placeholder="المدينة، الشارع" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition mt-2">
+          تأكيد وإرسال عبر الواتساب
+        </button>
+      </form>
+    </div>
+  </div>
+  
   <!-- الفوتر -->
   <footer class="bg-gray-800 text-white py-6 text-center text-sm mt-12">
     <p>© 2026 جميع الحقوق محفوظة لـ <strong>سوق بلس</strong></p>
@@ -103,7 +133,6 @@
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRy_S8FS-Tk3cBOBrG26nAXte1Q59t5jUWEXcT_8xgdXvjswAO4epQFy0I3S5ueVYYhQTUOzQh3RX/pub?gid=0&single=true&output=csv';
     let currentProduct = null;
 
-   // دالة تحويل CSV
     function parseCSV(text) {
       const lines = text.trim().split('\n');
       if (lines.length <= 1) return [];
@@ -111,14 +140,14 @@
       const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
       
       return lines.slice(1).map(line => {
-        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
+        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"\vert{}"$/g, ''));
         let obj = {};
         headers.forEach((h, i) => {
           obj[h] = values[i] || '';
         });
         return {
-          id: parseInt(obj.id) || Math.random(),
-          name: obj.name || 'منتج',
+          id: parseInt(obj.id),
+          name: obj.name || '',
           price: parseFloat(obj.price) || 0,
           originalPrice: parseFloat(obj['original price'] || obj.originalprice) || 0,
           rating: parseFloat(obj.rating) || 5.0,
@@ -126,10 +155,9 @@
           image: obj.image || 'https://via.placeholder.com/300x200?text=No+Image',
           description: obj.description || 'لا يوجد وصف متاح لهذا المنتج.',
           extraImage: obj.extra_image || obj.extraimage || '',
-          // جلب الكمية المتبقية
-          stock: obj.stock !== undefined && obj.stock !== '' ? parseInt(obj.stock) : 10
+          stock: (obj.stock !== undefined && obj.stock !== '') ? parseInt(obj.stock) : ((obj.quantity !== undefined && obj.quantity !== '') ? parseInt(obj.quantity) : 10)
         };
-      });
+      }).filter(p => !isNaN(p.id) && p.name.trim() !== '');
     }
 
     function getProductIdFromURL() {
@@ -145,7 +173,6 @@
       }
 
       try {
-        // إضافة _t لإلغاء الكاش المخبأ في المتصفح وجلب البيانات فوراً
         const res = await fetch(`${SHEET_CSV_URL}&_t=${Date.now()}`);
         const csvText = await res.text();
         const products = parseCSV(csvText);
@@ -163,7 +190,7 @@
       }
     }
 
-   function renderDetails(product) {
+    function renderDetails(product) {
       document.title = `${product.name} | سوق بلس`;
       
       const mainImg = document.getElementById('product-image');
@@ -250,11 +277,37 @@
       alert('تمت إضافة المنتج إلى السلة بنجاح!');
     });
 
+    // التحكم بالنافذة المنبثقة للطلب المباشر
+    const modal = document.getElementById('checkout-modal');
+    
     document.getElementById('buy-now-btn').addEventListener('click', () => {
+      modal.classList.remove('hidden');
+    });
+
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+
+    document.getElementById('direct-buy-form').addEventListener('submit', (e) => {
+      e.preventDefault();
       if (!currentProduct) return;
-      const message = `مرحباً، أود الطلب المباشر للمنتج التالي:\n- *الاسم:* ${currentProduct.name}\n- *السعر:* ${currentProduct.price}$`;
+
+      const name = document.getElementById('cust-name').value;
+      const phone = document.getElementById('cust-phone').value;
+      const address = document.getElementById('cust-address').value;
+
+      const message = `مرحباً، أود تقديم طلب شراء جديد:\n\n` +
+                      `📦 *المنتج:* ${currentProduct.name}\n` +
+                      `💰 *السعر:* ${currentProduct.price}$\n\n` +
+                      `👤 *بيانات المشتري:*\n` +
+                      `- *الاسم:* ${name}\n` +
+                      `- *الهاتف:* ${phone}\n` +
+                      `- *العنوان:* ${address}`;
+
       const whatsappNumber = "256766177669";
       window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+      
+      modal.classList.add('hidden');
     });
 
     loadProductDetails();
