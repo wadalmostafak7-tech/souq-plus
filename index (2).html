@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سوق بلس | حسابات ألعاب</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- الهيدر -->
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <a href="index.html" class="text-2xl font-extrabold text-emerald-600 flex items-center gap-1">
+        <span>سوق</span><span class="text-gray-800">بلس</span>
+      </a>
+      <a data-sell target="_blank" rel="noopener" href="#"
+         class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-lg transition">
+        بيع حسابك
+      </a>
+    </div>
+  </header>
+
+  <!-- مقدمة -->
+  <section class="bg-gradient-to-l from-emerald-600 to-emerald-700 text-white">
+    <div class="container mx-auto px-4 py-8 text-center">
+      <h1 class="text-2xl md:text-3xl font-extrabold mb-2">حسابات ألعاب بوساطة آمنة</h1>
+      <p class="text-emerald-50 text-sm md:text-base">ببجي • فري فاير • كلاش أوف كلانس — ندفع للبائع بعد أن تتأكد من استلام حسابك</p>
+    </div>
+  </section>
+
+  <!-- تبويبات الألعاب -->
+  <section class="bg-white border-b">
+    <div id="game-tabs" class="container mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none"></div>
+  </section>
+
+  <!-- أدوات البحث والفلترة -->
+  <section class="container mx-auto px-4 pt-4">
+    <div class="bg-white border rounded-xl p-3 grid gap-3 md:grid-cols-4 items-center">
+      <input id="search" type="search" placeholder="ابحث: رانك، سيرفر، سكن، مستوى..."
+        class="md:col-span-2 w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+      <input id="max-price" type="number" min="0" placeholder="أعلى سعر ($)"
+        class="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+      <select id="sort"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+        <option value="new">الأحدث</option>
+        <option value="asc">السعر: الأقل أولاً</option>
+        <option value="desc">السعر: الأعلى أولاً</option>
+      </select>
+      <label class="md:col-span-4 flex items-center gap-2 text-xs text-gray-600 select-none">
+        <input id="hide-sold" type="checkbox" checked class="accent-emerald-600">
+        إخفاء الحسابات المباعة
+      </label>
+    </div>
+    <p id="results-count" class="text-xs text-gray-500 mt-3 px-1"></p>
+  </section>
+
+  <!-- الحسابات -->
+  <main class="container mx-auto px-4 py-4 flex-grow">
+    <div id="accounts-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+      <p class="col-span-full text-center text-gray-500 py-10">جاري التحميل...</p>
+    </div>
+  </main>
+
+  <!-- كيف يعمل الشراء -->
+  <section class="container mx-auto px-4 py-8">
+    <h2 class="text-xl font-extrabold text-center mb-5">كيف تتم العملية؟</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+      <div class="bg-white border rounded-xl p-4"><div class="text-2xl mb-1">1️⃣</div><b>اختر الحساب</b><p class="text-gray-500 mt-1">ثم اضغط «اشتر عبر واتساب» لتتواصل معنا.</p></div>
+      <div class="bg-white border rounded-xl p-4"><div class="text-2xl mb-1">2️⃣</div><b>ادفع للوسيط</b><p class="text-gray-500 mt-1">يُحتجز المبلغ لدينا ولا يصل للبائع بعد.</p></div>
+      <div class="bg-white border rounded-xl p-4"><div class="text-2xl mb-1">3️⃣</div><b>استلم الحساب</b><p class="text-gray-500 mt-1">نأخذ الحساب من البائع ونسلّمه لك، وتبدّل بياناته.</p></div>
+      <div class="bg-white border rounded-xl p-4"><div class="text-2xl mb-1">4️⃣</div><b>تحرير المبلغ</b><p class="text-gray-500 mt-1">بعد فترة ضمان قصيرة نسلّم المبلغ للبائع بعد خصم عمولة الوساطة.</p></div>
+    </div>
+
+    <div class="mt-6 bg-white border rounded-xl p-5 text-center">
+      <b>تملك حساباً وتريد بيعه؟</b>
+      <p class="text-gray-500 text-sm mt-1 mb-3">أرسل لنا صور الحساب ومواصفاته فقط. لا نطلب البريد الإلكتروني ولا كلمة المرور في هذه المرحلة.</p>
+      <a data-sell target="_blank" rel="noopener" href="#"
+         class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-lg transition">أرسل حسابك عبر واتساب</a>
+    </div>
+  </section>
+
+  <footer class="bg-gray-800 text-white py-6 text-center text-sm">
+    <p>© 2026 جميع الحقوق محفوظة لـ <strong>سوق بلس</strong></p>
+    <p class="text-gray-400 text-xs mt-2 px-4">قد تمنع شروط بعض الألعاب بيع الحسابات وقد تتخذ إجراءات ضد الحسابات المباعة. المتجر غير تابع لأي شركة ألعاب، والأسماء ملك لأصحابها.</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>

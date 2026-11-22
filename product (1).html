@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تفاصيل الحساب | سوق بلس</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="text-2xl font-extrabold text-emerald-600 flex items-center gap-1">
+        <span>سوق</span><span class="text-gray-800">بلس</span>
+      </a>
+      <a href="index.html" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold transition">← العودة للحسابات</a>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+    <div id="loading" class="text-center py-12 text-gray-500 font-semibold">جاري تحميل تفاصيل الحساب...</div>
+
+    <div id="details" class="hidden bg-white rounded-2xl shadow-sm border p-5 md:p-8 grid md:grid-cols-2 gap-8 items-start">
+
+      <!-- الصور -->
+      <div class="w-full space-y-3">
+        <img id="main-image" src="" alt="" class="w-full h-72 md:h-96 object-cover rounded-xl border bg-gray-100">
+        <div id="gallery" class="flex gap-2 overflow-x-auto pb-2 hidden"></div>
+      </div>
+
+      <!-- التفاصيل -->
+      <div class="flex flex-col gap-5">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span id="game-badge" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold"></span>
+            <span id="status-badge" class="text-xs px-3 py-1 rounded-full font-bold"></span>
+          </div>
+          <h1 id="title" class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug mb-3"></h1>
+          <div class="flex items-center gap-3">
+            <span id="price" class="text-3xl font-extrabold text-emerald-600"></span>
+            <span id="original-price" class="text-gray-400 line-through text-lg hidden"></span>
+          </div>
+        </div>
+
+        <!-- المواصفات الأساسية -->
+        <dl id="facts" class="grid grid-cols-2 gap-2 text-sm"></dl>
+
+        <!-- المميزات -->
+        <div id="specs-box" class="hidden">
+          <h3 class="font-bold text-gray-800 mb-2">أهم ما في الحساب:</h3>
+          <ul id="specs" class="space-y-1 text-sm text-gray-700 list-disc pr-5"></ul>
+        </div>
+
+        <div id="desc-box" class="hidden border-t pt-4">
+          <h3 class="font-bold text-gray-800 mb-1">وصف إضافي:</h3>
+          <p id="description" class="text-gray-600 text-sm leading-relaxed whitespace-pre-line"></p>
+        </div>
+
+        <div id="notice" class="hidden text-sm font-bold p-3 rounded-lg border"></div>
+
+        <div class="space-y-3 pt-2 border-t">
+          <a id="buy-btn" target="_blank" rel="noopener" href="#"
+             class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold transition flex items-center justify-center text-base shadow-md">
+            اشتر عبر واتساب
+          </a>
+          <a id="ask-btn" target="_blank" rel="noopener" href="#"
+             class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 rounded-xl font-bold transition flex items-center justify-center text-sm">
+            لدي سؤال عن هذا الحساب
+          </a>
+          <p class="text-xs text-gray-500 leading-relaxed">
+            🔒 تتم العملية عبر وسيط: تدفع لنا، نستلم الحساب من البائع ونسلّمه لك، ثم نحرّر المبلغ للبائع بعد فترة ضمان قصيرة.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="not-found" class="hidden text-center py-16">
+      <h2 class="text-2xl font-bold text-gray-700 mb-2">الحساب غير موجود!</h2>
+      <p class="text-gray-500 mb-6">ربما تم حذفه أو الرابط غير صحيح.</p>
+      <a href="index.html" class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-emerald-700 transition">العودة للرئيسية</a>
+    </div>
+  </main>
+
+  <footer class="bg-gray-800 text-white py-6 text-center text-sm mt-12">
+    <p>© 2026 جميع الحقوق محفوظة لـ <strong>سوق بلس</strong></p>
+    <p class="text-gray-400 text-xs mt-2 px-4">قد تمنع شروط بعض الألعاب بيع الحسابات وقد تتخذ إجراءات ضد الحسابات المباعة.</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="product.js"></script>
+</body>
+</html>
